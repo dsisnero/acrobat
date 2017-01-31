@@ -75,6 +75,17 @@ module Acrobat
       Pathname.glob( dir + '*.pdf')
     end
 
+    def merge_pdfs(*pdfs)
+      pdf_array = Array(pdfs)
+      raise 'Not enough pdfs to merge' if pdfs.size < 2
+      first, *rest = pdf_array
+      doc = open(first)
+      rest.each do |path|
+        doc.merge(path)
+      end
+      doc
+    end
+
     # merges the pdfs in directory
     # @param dir [String] the path of the directory
     # @param name [String,Nil] the name of the returned pdf file
@@ -82,21 +93,12 @@ module Acrobat
     # @param output_dir [String,Nil] the name of the output dir
     #    if the output_dir is nil, the output dir is the dir param
     # return [Boolean] if the merge was successful or not
-    def merge_pdfs(dir, name: nil , output_dir: nil)
+    def merge_pdfs_in_dir(dir, name: nil , output_dir: nil)
       name = lname || "merged.pdf"
       dir = output_dir || dir
       pdfs = Pathname.glob( dir + '*.pdf')
-      raise 'Not enough pdfs to merge' if pdfs.size < 2
-      first, *rest = pdfs
-      open(first) do |pdf|
-        rest.each do |path|
-          open(path) do |pdfnext|
-            pdf.merge_doc(pdfnext)
-          end
-        end
-
-        pdf.save_as(name: name, dir: dir)
-      end
+      doc = merge_pdfs(pdfs)
+      doc
     end
 
     # quit the Adobe App.
@@ -130,7 +132,7 @@ module Acrobat
       begin
         yield doc
       ensure
-        doc.close unless doc.closed?
+        doc.close
         doc = nil
       end
     end
@@ -146,76 +148,6 @@ module Acrobat
       WIN32OLE.const_load(ole_obj, ACRO) unless ACRO.constants.size > 0
     end
 
-
-
-
-end
-
-if $0 ==  __FILE__
-  require 'pry'
-
-  app = Acrobat::App.run do |app|
-
-    data = Pathname(__dir__).parent.parent + 'data'
-    antenna_form = data + 'faa.6030.17.antenna.pdf'
-
-
-    doc1 = app.open(antenna_form)
-    doc1.show
-
-    fields = {'city' => 'OGD', 'state' => 'Utah',
-              'lid' => 'OGD',
-              'fac' => 'RTR',
-             }
-    doc1.fill_form(fields)
-
-
-    doc1.save_as(name: 'ogd.rtr.pdf', dir: 'tmp')
-
-
-
-
-    doc2 = app.open(data + 'faa.6030.17.cm300.uhf.tx.pdf')
-    doc2.show
-    doc2.fill_form(fields)
-
-    doc1.merge(doc2)
-    doc1.save_as(name: 'ogd.merged_antenna_tx.pdf', dir: 'tmp')
-
   end
 
 end
-
-
-
-# ublic Sub Main()
-#     Dim AcroApp As Acrobat.CAcroApp
-#     Dim AvDoc As Acrobat.CAcroAVDoc
-#     Dim fcount As Long
-#     Dim sFieldName As String
-#     Dim Field As AFORMAUTLib.Field
-#     Dim Fields As AFORMAUTLib.Fields
-#     Dim AcroForm As AFORMAUTLib.AFormApp
-
-#     Set AcroApp = CreateObject("AcroExch.App")
-#     Set AvDoc = CreateObject("AcroExch.AVDoc")
-
-#     If AvDoc.Open("C:\test\testform.pdf", "") Then
-#         AcroApp.Show
-#         Set AcroForm = CreateObject("AFormAut.App")
-#         Set Fields = AcroForm.Fields
-#         fcount = Fields.Count
-#         MsgBox fcount
-#         For Each Field In Fields
-#             sFieldName = Field.Name
-#             MsgBox sFieldName
-#         Next Field
-#     Else
-#         MsgBox "failure"
-#     End If
-#     AcroApp.Exit
-#     Set AcroApp = Nothing
-#     Set AvDoc = Nothing
-#     Set Field = Nothing
-#     Set Fields = Nothing
-#     Set AcroForm = Nothing
