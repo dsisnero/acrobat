@@ -9,5 +9,7 @@ Rakefile
 bin/acrobat
 lib/acrobat.rb
 lib/acrobat/app.rb
+lib/acrobat/jso.rb
+lib/acrobat/pdoc.rb
 test/acrobat_test.rb
 test/test_helper.rb
