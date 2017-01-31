@@ -7,10 +7,6 @@ Manifest.txt
 README.adoc
 Rakefile
 bin/acrobat
-examples/6030.17.antenna.pdf
-examples/6030.17.cm300.tx.pdf
-examples/form_field.rb
-examples/merge.rb
 lib/acrobat.rb
 lib/acrobat/app.rb
 test/acrobat_test.rb

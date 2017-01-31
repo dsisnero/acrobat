@@ -3,5 +3,5 @@ require 'acrobat/app'
 
 
 module Acrobat
-  VERSION = "1.0.0"
+  VERSION = "0.0.5"
 end
