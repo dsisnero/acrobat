@@ -19,6 +19,8 @@ Dominic Sisneros <https://github.com/dsisnero[@dsisnero]
 
 == DESCRIPTION:
 
+The acrobat gem is a library that uses WIN32OLE to automate pdf functions.  Adobe Reader or Adobe Acrobat must be installed and then you can fill forms and merge documents
+
 == Requirements
 
 * Windows Adobe Acrobat installed
