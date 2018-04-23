@@ -1,4 +1,4 @@
-require 'test_helper'
+require_relative 'test_helper'
 
 
 require "acrobat"
@@ -12,9 +12,12 @@ module Acrobat
 
     describe 'new' do
 
+      it 'works' do
+        assert true
+      end
+
 
       it 'can be created' do
-
         app = App.new
         app.must_be_instance_of App
       end

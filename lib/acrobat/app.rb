@@ -25,9 +25,14 @@ module Acrobat
 
   class App
 
+    #  [WIN32_OLE] ole_obj
+    attr_reader :ole_obj
 
-    attr_reader :ole_obj, :pdoc
+    # the wrapped [PDoc] PDoc object
+    attr_reader :pdoc
 
+    # Initialize the
+    # @return [App] return an instance of App
     def initialize()
       @ole_obj = WIN32OLE.new('AcroExch.App')
       load_constants(@ole_obj)
@@ -39,11 +44,12 @@ module Acrobat
     # Runs the adobe app and quits at the end
     # @yield app [App]
     #
-    # Acrobat::App.run do |app|
-    #    doc = app.open('doc.pdf')
-    #    doc.fill_form( city: 'City', state: 'ST')
-    #    doc.save_as('filled.pdf')
-    # end
+    # @example
+    #   Acrobat::App.run do |app|
+    #     doc = app.open('doc.pdf')
+    #     doc.fill_form( city: 'City', state: 'ST')
+    #     doc.save_as('filled.pdf')
+    #   end
     #
     # @return nil
     def self.run
@@ -57,6 +63,32 @@ module Acrobat
         nil
       end
     end
+
+    def self.replace_pages(src, replacement, output_name: , **opts)
+      self.run do |app|
+        app.open(src) do |doc|
+          doc.replace_pages(replacement, opts)
+          doc.save_as(output_name)
+        end
+      end
+    end
+
+    # Fills the form with updates in a hash
+    # @example
+    #    Acrobat::App.fill_form(myform.pdf, output_name: 'filled.pdf
+    #                                 , update_hash: { name: 'dom', filled_date: 1/20/2013
+    # @param doc [String] the String path of a fillable pdf file
+    # @param output_name [String] the name of the saved filled pdf file
+    # @param update_hash [Hash] the hash with updates
+    def self.fill_form(form,output_name: , update_hash: )
+      self.run do |app|
+        doc = app.open(form)
+        doc.fill_form(update_hash)
+        doc.save_as(output_name)
+      end
+    end
+
+
 
     # show the Adobe Acrobat application
     def show
@@ -85,6 +117,8 @@ module Acrobat
       end
       doc
     end
+
+
 
     # merges the pdfs in directory
     # @param dir [String] the path of the directory
@@ -145,7 +179,7 @@ module Acrobat
     private
 
     def load_constants(ole_obj)
-      WIN32OLE.const_load(ole_obj, ACRO) unless ACRO.constants.size > 0
+     WIN32OLE.const_load(ole_obj, ACRO) unless ACRO.constants.size > 0
     end
 
   end

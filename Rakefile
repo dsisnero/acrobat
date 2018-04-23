@@ -29,15 +29,16 @@ Hoe.plugin :minitest
 Hoe.plugin :yard
 
 Hoe.spec "acrobat" do |s|
-  dependency("hoe-bundler", "> 0.0",:development)
-  dependency("hoe-yard", "> 0.0",:development)
+  dependency("hoe-bundler", "~> 1.4",:development)
+  dependency("hoe-yard", "> 0.1",:development)
   dependency("pry", "> 0.0", :development)
   dependency("pry-byebug", "> 0.0", :development)
   dependency("yard", "> 0.0", :development)
   dependency("guard", "> 0.0", :development)
-  dependency("wdm", "> 0.1.0", :development) if Gem.win_platform?
+  dependency("wdm", "> 0.1", :development) if Gem.win_platform?
   dependency("guard-minitest", "> 0.0", :development)
-  dependency("asciidoctor", ">0.0",:development)
+  dependency("asciidoctor", "> 0.0",:development)
+#  dependency("minitest-utils", "> 0.0", :development)
   developer("Dominic Sisneros","dsisnero@gmail.com")
   clean_globs << "tmp"
   license "MIT" # this should match the license in the README

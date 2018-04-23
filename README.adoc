@@ -71,7 +71,7 @@ Using `bundle update` is *not* recommended as it will also update other gems, wh
 == Usage
 
 [source,ruby]
-====
+----
 
   require 'acrobat'
   Adobe::Acrobat.run do |app|
@@ -87,7 +87,7 @@ Using `bundle update` is *not* recommended as it will also update other gems, wh
     
     
 
-====
+----
 
 == Getting Help
 

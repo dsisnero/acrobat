@@ -20,22 +20,38 @@ module Acrobat
       ole_obj.GetNumPages()
     end
 
+    def last_page
+      page_count -1
+    end
+
     # merges the doc to the
     # @overload merge(doc)
     #   @param doc [String] the String path of a pdf file
     # @overload merge(doc)
     #   @param doc [PDoc] an open PDoc to merge
     # @return [Boolean] whether the doc was merged correctly
-    def merge(doc)
-      case doc
-      when PDoc
-        merge_pdoc(doc)
-      when String, Pathname
-        docpath = Pathname(doc)
-        raise 'File not found' unless docpath.file?
-        doc2 = app.open(docpath)
-        merge_pdoc(doc2)
-      end
+    def merge(doc, options = {})
+      src = open_pdoc(doc)
+      merge_pdoc(src,options)
+    end
+
+    # opens and/or returns PDoc
+    # @overload open(doc)
+    #   @param doc [String] the String path of a pdf file
+    # @overload open(PDoc] and open PDoc file
+    #   @param doc [PDoc] an already open PDoc file
+    # @return doc [PDOC] the opened PDoc
+    def open_pdoc(doc)
+      src = case doc
+            when PDoc
+              doc
+            when String, Pathname
+              docpath = Pathname(doc)
+              raise 'File not found' unless docpath.file?
+              doc2 = app.open(docpath)
+              doc2
+            end
+      src
     end
 
     def fill_and_save(results,name: nil, dir: nil)
@@ -45,11 +61,15 @@ module Acrobat
       true
     end
 
-    def default_dir(d)
+
+    # returns [Pathname] of d
+    #   @param dir [String, Nil] the String path
+    # @return dir [Pathname] Pathname of dir or of working directory
+    def default_dir(dir)
       Pathname(dir || Pathname.getw)
     end
 
-    def save_as(name:nil, dir:nil)
+    def save_as(name,dir:nil)
       name = path.basename unless name
       dir = Pathname(dir || Pathname.getwd)
       dir.mkpath
@@ -65,11 +85,19 @@ module Acrobat
       ole_obj.Close rescue nil
     end
 
+    def replace_pages(doc, start: 0, replace_start: 0, num_of_pages: 1,merge_annotations: true)
+      src = open_pdoc(doc)
 
+      ole_obj.ReplacePages(start,src.ole_obj,replace_start,num_of_pages,merge_annotations)
+    end
+
+    # return the instance of JSO object
+    # @return [Jso] a WIN32OLE wrapped Jso object 'javascript object'
     def jso
       @jso ||= Jso.new(self,ole_obj.GetJSObject)
     end
 
+    # return the field_names of the pdf form
     def field_names
       jso.field_names
     end
@@ -79,10 +107,17 @@ module Acrobat
     end
 
     protected
-    def merge_pdoc(doc)
+    def merge_pdoc(doc,options = {})
       begin
-        merged = ole_obj.InsertPages(page_count - 1, doc.ole_obj, 0, doc.page_count, true)
-        return merged
+        unless options
+          merged = ole_obj.InsertPages(page_count - 1, doc.ole_obj, 0, doc.page_count, true)
+          return merged
+        else
+          start = options[:start]
+          start_page
+          pages = options[:pages]
+          ole_obj.InsertPages(start, doc.ole_obj, 0, doc.page_count, true)
+        end
       rescue
         return false
       end

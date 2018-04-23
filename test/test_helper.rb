@@ -7,3 +7,7 @@ else
 end
 
 
+require 'minitest/spec'
+require 'minitest/autorun'
+#require 'minitest/focus'
+#require 'minitest/utils'
