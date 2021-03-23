@@ -67,7 +67,7 @@ module Acrobat
     def self.replace_pages(src, replacement, output_name: , **opts)
       self.run do |app|
         app.open(src) do |doc|
-          doc.replace_pages(replacement, opts)
+          doc.replace_pages(replacement, **opts)
           doc.save_as(output_name)
         end
       end

@@ -1,4 +1,3 @@
-.autotest
 .gitignore
 Guardfile
 History.adoc

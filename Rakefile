@@ -5,10 +5,20 @@ require "hoe"
 
 class Hoe
 
-  def intuit_values
+  ASCIIDOC_URI_TO_METADATA = {
+    'home' => 'uri-repo',
+    'bugs' => 'uri-issues',
+    'code' => 'uri-repo',
+    'clog' => 'uri-changelog'
+  }
+
+  # URLS_TO_META_MAP
+
+     
+  def intuit_values(input)
     require 'asciidoctor'
     doc = Asciidoctor.load_file readme_file
-    urls = { "home" => doc.attributes['uri-repo']}
+    urls = ASCIIDOC_URI_TO_METADATA.to_h{ |k,v| [k, doc.attributes[v]]}
     desc = doc.blocks.find{|b| b.id =~ /description/i}.content
     summ = desc.split(/\.\s+/).first(summary_sentences).join(". ")
     self.urls ||= urls

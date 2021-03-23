@@ -30,9 +30,9 @@ module Acrobat
     # @overload merge(doc)
     #   @param doc [PDoc] an open PDoc to merge
     # @return [Boolean] whether the doc was merged correctly
-    def merge(doc, options = {})
+    def merge(doc)
       src = open_pdoc(doc)
-      merge_pdoc(src,options)
+      merge_pdoc(src)
     end
 
     # opens and/or returns PDoc
@@ -61,6 +61,16 @@ module Acrobat
       true
     end
 
+    def insert_pages(src: , insert_after: nil, src_page_start: nil, src_page_end: nil)
+      insert_hash = { 'nPage' => insert_after -1 }
+      insert_hash['nStart'] = src_page_start + 1 if src_page_start
+      insert_hash['nEnd'] = src_page_end + 1 if src_page_end
+      ole_obj.InsertPages(**insert_hash)
+    end
+
+    def prepend_pages(src_path: , src_page_start: 1, src_page_end: nil)
+      insert_pages( insert_after: 0, src_path: src_path, src_page_start: src_page_start, src_page_end: src_page_end)
+    end
 
     # returns [Pathname] of d
     #   @param dir [String, Nil] the String path
@@ -107,7 +117,7 @@ module Acrobat
     end
 
     protected
-    def merge_pdoc(doc,options = {})
+    def merge_pdoc(doc, **options)
       begin
         unless options
           merged = ole_obj.InsertPages(page_count - 1, doc.ole_obj, 0, doc.page_count, true)

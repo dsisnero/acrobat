@@ -11,10 +11,10 @@ Dominic Sisneros <https://github.com/dsisnero[@dsisnero]
 :uri-repo: {uri-org}/acrobat
 :uri-issues: {uri-repo}/issues
 :uri-contributors: {uri-repo}/graphs/contributors
-:uri-changelog: {uri-rel-file-base}CHANGELOG.adoc
 :uri-rel-file-base: {uri-repo}/blob/master/
 :uri-rel-tree-base: {uri-repo}/tree/master/
 :uri-contribute: {uri-rel-file-base}CONTRIBUTING.adoc
+:uri-changelog: {uri-rel-file-base}CHANGELOG.adoc
 :uri-license: {uri-rel-file-base}LICENSE.adoc
 
 == DESCRIPTION:
