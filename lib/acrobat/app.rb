@@ -55,8 +55,7 @@ module Acrobat
       the_app = new
       yield the_app
     ensure
-      the_app.quit unless the_app.nil?
-      the_app = nil
+      the_app&.quit
       GC.start
       nil
     end
@@ -121,7 +120,7 @@ module Acrobat
     #    if the output_dir is nil, the output dir is the dir param
     # return [Boolean] if the merge was successful or not
     def merge_pdfs_in_dir(dir, name: nil, output_dir: nil)
-      name ||= "merged.pdf"
+      name || "merged.pdf"
       dir = output_dir || dir
       merge_pdfs(find_pdfs_in_dir(dir))
     end
@@ -156,7 +155,7 @@ module Acrobat
         yield doc
       ensure
         doc.close
-        doc = nil
+        nil
       end
     end
 

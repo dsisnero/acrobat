@@ -121,7 +121,7 @@ module Acrobat
       if options
         start = options[:start]
         start_page
-        pages = options[:pages]
+        options[:pages]
         ole_obj.InsertPages(start, doc.ole_obj, 0, doc.page_count, true)
       else
         ole_obj.InsertPages(page_count - 1, doc.ole_obj, 0, doc.page_count, true)

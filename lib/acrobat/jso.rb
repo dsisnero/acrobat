@@ -66,7 +66,7 @@ module Acrobat
 
     def get_field(name)
       field = find_field(name)
-      field.Value if field
+      field&.Value
     end
 
     def field_count

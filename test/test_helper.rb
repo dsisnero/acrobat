@@ -2,6 +2,7 @@
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "acrobat"
+require "pathname"
 
 require "minitest/autorun"
 

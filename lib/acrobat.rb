@@ -10,7 +10,7 @@ end
 if $0 == __FILE__
   require "pry"
 
-  app = Acrobat::App.run do |app|
+  Acrobat::App.run do |app|
     data = Pathname(__dir__).parent + "data"
     antenna_form = data + "faa.6030.17.antenna.pdf"
 
