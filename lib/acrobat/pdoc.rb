@@ -1,17 +1,15 @@
 module Acrobat
-
   class PDoc
-
     attr_reader :app, :ole_obj, :path
 
-    def initialize(app,ole,path=nil)
+    def initialize(app, ole, path = nil)
       @app = app
       @ole_obj = ole
       @path = path
     end
 
     def show(name = nil)
-      name = name ||  ole_obj.GetFileName
+      name ||= ole_obj.GetFileName
       ole_obj.OpenAVDoc(name)
     end
 
@@ -21,7 +19,7 @@ module Acrobat
     end
 
     def last_page
-      page_count -1
+      page_count(-1)
     end
 
     # merges the doc to the
@@ -42,34 +40,33 @@ module Acrobat
     #   @param doc [PDoc] an already open PDoc file
     # @return doc [PDOC] the opened PDoc
     def open_pdoc(doc)
-      src = case doc
-            when PDoc
-              doc
-            when String, Pathname
-              docpath = Pathname(doc)
-              raise 'File not found' unless docpath.file?
-              doc2 = app.open(docpath)
-              doc2
-            end
-      src
+      case doc
+      when PDoc
+        doc
+      when String, Pathname
+        docpath = Pathname(doc)
+        raise "File not found" unless docpath.file?
+        app.open(docpath)
+
+      end
     end
 
-    def fill_and_save(results,name: nil, dir: nil)
+    def fill_and_save(results, name: nil, dir: nil)
       fill_form(results)
       is_saved = save_as(name: name, dir: dir)
       puts "saved file: %s" % [dir + name] if is_saved
       true
     end
 
-    def insert_pages(src: , insert_after: nil, src_page_start: nil, src_page_end: nil)
-      insert_hash = { 'nPage' => insert_after -1 }
-      insert_hash['nStart'] = src_page_start + 1 if src_page_start
-      insert_hash['nEnd'] = src_page_end + 1 if src_page_end
+    def insert_pages(src:, insert_after: nil, src_page_start: nil, src_page_end: nil)
+      insert_hash = {"nPage" => insert_after - 1}
+      insert_hash["nStart"] = src_page_start + 1 if src_page_start
+      insert_hash["nEnd"] = src_page_end + 1 if src_page_end
       ole_obj.InsertPages(**insert_hash)
     end
 
-    def prepend_pages(src_path: , src_page_start: 1, src_page_end: nil)
-      insert_pages( insert_after: 0, src_path: src_path, src_page_start: src_page_start, src_page_end: src_page_end)
+    def prepend_pages(src_path:, src_page_start: 1, src_page_end: nil)
+      insert_pages(insert_after: 0, src_path: src_path, src_page_start: src_page_start, src_page_end: src_page_end)
     end
 
     # returns [Pathname] of d
@@ -79,12 +76,12 @@ module Acrobat
       Pathname(dir || Pathname.getw)
     end
 
-    def save_as(name,dir:nil)
-      name = path.basename unless name
+    def save_as(name, dir: nil)
+      name ||= path.basename
       dir = Pathname(dir || Pathname.getwd)
       dir.mkpath
-      windows_path = FileSystemObject.windows_path(dir + name )
-      ole_obj.save(ACRO::PDSaveFull | ACRO::PDSaveCopy,windows_path)
+      windows_path = FileSystemObject.windows_path(dir + name)
+      ole_obj.save(ACRO::PDSaveFull | ACRO::PDSaveCopy, windows_path)
     end
 
     def name
@@ -92,19 +89,21 @@ module Acrobat
     end
 
     def close
-      ole_obj.Close rescue nil
+      ole_obj.Close
+    rescue
+      nil
     end
 
-    def replace_pages(doc, start: 0, replace_start: 0, num_of_pages: 1,merge_annotations: true)
+    def replace_pages(doc, start: 0, replace_start: 0, num_of_pages: 1, merge_annotations: true)
       src = open_pdoc(doc)
 
-      ole_obj.ReplacePages(start,src.ole_obj,replace_start,num_of_pages,merge_annotations)
+      ole_obj.ReplacePages(start, src.ole_obj, replace_start, num_of_pages, merge_annotations)
     end
 
     # return the instance of JSO object
     # @return [Jso] a WIN32OLE wrapped Jso object 'javascript object'
     def jso
-      @jso ||= Jso.new(self,ole_obj.GetJSObject)
+      @jso ||= Jso.new(self, ole_obj.GetJSObject)
     end
 
     # return the field_names of the pdf form
@@ -117,21 +116,19 @@ module Acrobat
     end
 
     protected
+
     def merge_pdoc(doc, **options)
-      begin
-        unless options
-          merged = ole_obj.InsertPages(page_count - 1, doc.ole_obj, 0, doc.page_count, true)
-          return merged
-        else
-          start = options[:start]
-          start_page
-          pages = options[:pages]
-          ole_obj.InsertPages(start, doc.ole_obj, 0, doc.page_count, true)
-        end
-      rescue
-        return false
+      if options
+        start = options[:start]
+        start_page
+        pages = options[:pages]
+        ole_obj.InsertPages(start, doc.ole_obj, 0, doc.page_count, true)
+      else
+        ole_obj.InsertPages(page_count - 1, doc.ole_obj, 0, doc.page_count, true)
+
       end
+    rescue
+      false
     end
   end
-
 end

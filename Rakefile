@@ -1,58 +1,10 @@
-# -*- ruby -*-
+# frozen_string_literal: true
 
-require "rubygems"
-require "hoe"
+require "bundler/gem_tasks"
+require "minitest/test_task"
 
-class Hoe
+Minitest::TestTask.create
 
-  ASCIIDOC_URI_TO_METADATA = {
-    'home' => 'uri-repo',
-    'bugs' => 'uri-issues',
-    'code' => 'uri-repo',
-    'clog' => 'uri-changelog'
-  }
+require "standard/rake"
 
-  # URLS_TO_META_MAP
-
-     
-  def intuit_values(input)
-    require 'asciidoctor'
-    doc = Asciidoctor.load_file readme_file
-    urls = ASCIIDOC_URI_TO_METADATA.to_h{ |k,v| [k, doc.attributes[v]]}
-    desc = doc.blocks.find{|b| b.id =~ /description/i}.content
-    summ = desc.split(/\.\s+/).first(summary_sentences).join(". ")
-    self.urls ||= urls
-    self.description ||= desc
-    self.summary ||= summ
-  end
-
-end
-
-# Hoe.plugin :compiler
-# Hoe.plugin :gem_prelude_sucks
-# Hoe.plugin :inline
-# Hoe.plugin :racc
-# Hoe.plugin :rcov
-# Hoe.plugin :rdoc
-Hoe.plugin :bundler
-Hoe.plugin :minitest
-Hoe.plugin :yard
-
-Hoe.spec "acrobat" do |s|
-  dependency("hoe-bundler", "~> 1.4",:development)
-  dependency("hoe-yard", "> 0.1",:development)
-  dependency("pry", "> 0.0", :development)
-  dependency("pry-byebug", "> 0.0", :development)
-  dependency("yard", "> 0.0", :development)
-  dependency("guard", "> 0.0", :development)
-  dependency("wdm", "> 0.1", :development) if Gem.win_platform?
-  dependency("guard-minitest", "> 0.0", :development)
-  dependency("asciidoctor", "> 0.0",:development)
-#  dependency("minitest-utils", "> 0.0", :development)
-  developer("Dominic Sisneros","dsisnero@gmail.com")
-  clean_globs << "tmp"
-  license "MIT" # this should match the license in the README
-end
-
-
-# vim: syntax=ruby
+task default: %i[test standard]

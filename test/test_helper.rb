@@ -1,13 +1,8 @@
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+# frozen_string_literal: true
 
-if RUBY_VERSION < '1.9.3'
- ::Dir.glob(::File.expand_path('../support/**/*.rb', __FILE__)).each { |f| require File.join(File.dirname(f), File.basename(f, '.rb')) }
-else
- ::Dir.glob(::File.expand_path('../support/**/*.rb', __FILE__)).each { |f| require_relative f }
-end
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+require "acrobat"
 
+require "minitest/autorun"
 
-require 'minitest/spec'
-require 'minitest/autorun'
-#require 'minitest/focus'
-#require 'minitest/utils'
+TEST_FILES = Pathname(__dir__) + "data"
