@@ -1,5 +1,8 @@
+# rbs_inline: enable
+
 require "win32ole"
 require_relative "pdoc"
+require_relative "avdoc"
 require_relative "jso"
 
 module Acrobat
@@ -27,22 +30,28 @@ module ACRO; end
 module Acrobat
   class App
     #  [WIN32_OLE] ole_obj
-    attr_reader :ole_obj
+    attr_reader :ole_obj # :WIN32OLE
 
-    # the wrapped [PDoc] PDoc object
-    attr_reader :pdoc
-
-    # Initialize the
-    # @return [App] return an instance of App
-    def initialize
+    def initialize # : Void
       @ole_obj = WIN32OLE.new("AcroExch.App")
+      unless @ole_obj
+        @ole_obj = WIN32OLE.connect("AcroExch.App")
+      end
       load_constants(@ole_obj)
       @docs = []
     end
 
+    def self.close(path)
+      name = File.basename(path)
+      run do |app|
+        av = app.avdocs.find{|a| a.pdoc_name == name}
+        av&.close
+      end
+    end
+        
+
+
     # Runs the adobe app and quits at the end
-    # @yield app [App]
-    #
     # @example
     #   Acrobat::App.run do |app|
     #     doc = app.open('doc.pdf')
@@ -50,19 +59,18 @@ module Acrobat
     #     doc.save_as('filled.pdf')
     #   end
     #
-    # @return nil
+    # @rbs return Void
     def self.run
       the_app = new
       yield the_app
     ensure
       the_app&.quit
       GC.start
-      nil
     end
 
-    def self.replace_pages(src, replacement, output_name:, **opts)
+    def self.replace_pages(pdf_file, replacement, output_name:, **opts)
       run do |app|
-        app.open(src) do |doc|
+        app.open(pdf_file) do |doc|
           doc.replace_pages(replacement, **opts)
           doc.save_as(output_name)
         end
@@ -73,30 +81,51 @@ module Acrobat
     # @example
     #    Acrobat::App.fill_form(myform.pdf, output_name: 'filled.pdf
     #                                 , update_hash: { name: 'dom', filled_date: 1/20/2013
-    # @param doc [String] the String path of a fillable pdf file
-    # @param output_name [String] the name of the saved filled pdf file
-    # @param update_hash [Hash] the hash with updates
-    def self.fill_form(form, output_name:, update_hash:)
+    # @rbs pdf_form: String -- the String path of a fillable pdf file
+    # @rbs output_name: String -- the name of the saved filled pdf file
+    # @rbs update_hash: Hash -- the hash with updates
+    def self.fill_form(pdf_form, output_name:, update_hash:)
       run do |app|
-        doc = app.open(form)
+        doc = app.open(pdf_form)
         doc.fill_form(update_hash)
         doc.save_as(output_name)
       end
     end
 
+    # @rbs return Array[AvDoc]
+    # @rbs &: (AvDoc) -> Void
+    def avdocs
+      count = ole_obj.GetNumAVDocs
+      return [] if count == 0
+      return to_enum(:avdocs) unless block_given? 
+      av_array = []
+      count.times do |i|
+        ole = ole_obj.GetAVDoc(i)
+        raise "Wrong index for GetNumAVDocs #{i -1}" unless ole
+        av = AvDoc.new(ole)
+        if block_given?
+          yield av
+        else
+          av_array << av
+        end
+      end
+      av_array unless block_given?
+    end
+        
+
     # show the Adobe Acrobat application
-    def show
+    def show # : Void
       ole_obj.Show
     end
 
     # hide the Adobe Acrobat application
-    def hide
+    def hide # : Void
       ole_obj.Hide
     end
 
     # Finds the pdfs in a dir
-    # @param dir [String] the directory to find pdfs in
-    # @return [Array] of pdf files
+    # @rbs dir: String -- the directory to find pdfs in
+    # @rbs return Array[Pathname] -- of pdf files
     def find_pdfs_in_dir(dir)
       Pathname.glob(dir + "/*.pdf")
     end
@@ -113,10 +142,10 @@ module Acrobat
     end
 
     # merges the pdfs in directory
-    # @param dir [String] the path of the directory
-    # @param name [String,Nil] the name of the returned pdf file
+    # @rbs dir: String -- the path of the directory
+    # @rbs name: String | Nil -- the name of the returned pdf file
     #    if the name is nil, the name is "merged.pdf"
-    # @param output_dir [String,Nil] the name of the output dir
+    # @rbs output_dir: String | Nil -- the name of the output dir
     #    if the output_dir is nil, the output dir is the dir param
     # return [Boolean] if the merge was successful or not
     def merge_pdfs_in_dir(dir, name: nil, output_dir: nil)
@@ -127,7 +156,7 @@ module Acrobat
 
     # quit the Adobe App.
     #   closes the open adobe documents and quits the program
-    # @return nil
+    # @rbs return nil
     def quit
       begin
         docs.each { |d| d.close }
@@ -141,21 +170,17 @@ module Acrobat
     attr_reader :docs
 
     # open the file.
-    # @param file [String #to_path]
-    # @return [PDoc] the open file as a Pdoc instance
+    # @rbs file: String | Pathname -- #to_path
+    # @rbs &: (PDoc) -> Nil
+    # @rbs return PDoc -- the open file as a Pdoc instance
     def open(file)
-      filepath = Pathname(file).expand_path
-      raise FileNotFound.new(filepath) unless filepath.file?
-      pdoc = WIN32OLE.new("AcroExch.PDDoc")
-      is_opened = pdoc.open FileSystemObject.windows_path(filepath)
-      doc = PDoc.new(self, pdoc, filepath) if is_opened
-      docs << doc if is_opened
+      doc = PDoc.from_path(file)
+      docs << doc
       return doc unless block_given?
       begin
         yield doc
       ensure
         doc.close
-        nil
       end
     end
 

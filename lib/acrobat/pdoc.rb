@@ -1,9 +1,19 @@
 module Acrobat
   class PDoc
-    attr_reader :app, :ole_obj, :path
+    attr_reader :ole_obj
+    
+    attr_reader  :path #: Path | Nil
 
-    def initialize(app, ole, path = nil)
-      @app = app
+    def self.from_path(path)
+      filepath = Pathname(path).expand_path
+      raise FileNotFound.new(filepath) unless filepath.file?
+      pdoc = WIN32OLE.new("AcroExch.PDDoc")
+      result = pdoc.open FileSystemObject.windows_path(filepath)
+      raise "Error opening Acrobat::Pdoc from #{filepath}" if result == 0
+      new(pdoc, path)
+    end
+
+    def initialize(ole, path = nil)
       @ole_obj = ole
       @path = path
     end
@@ -13,41 +23,32 @@ module Acrobat
       ole_obj.OpenAVDoc(name)
     end
 
-    # @return [Fixnum] the number of pages in the pdf
+    # @rbs return Fixnum -- the number of pages in the pdf
     def page_count
       ole_obj.GetNumPages()
     end
 
-    def last_page
-      page_count(-1)
+    def last_page # : Fixnum
+      page_count - 1
     end
 
     # merges the doc to the
-    # @overload merge(doc)
-    #   @param doc [String] the String path of a pdf file
-    # @overload merge(doc)
-    #   @param doc [PDoc] an open PDoc to merge
-    # @return [Boolean] whether the doc was merged correctly
+    #   @rbs doc: PDoc|String|Pathname --  an open PDoc to merge or filename
+    # @rbs return Boolean -- whether the doc was merged correctly
     def merge(doc)
-      src = open_pdoc(doc)
-      merge_pdoc(src)
+      src = open_ole_pdoc(doc)
+      ole_insert_pages(src, self_start_page: last_page, merge_doc_page_start: 0,
+        number_pages: src.page_count, bookmarks: true)
     end
 
     # opens and/or returns PDoc
-    # @overload open(doc)
-    #   @param doc [String] the String path of a pdf file
-    # @overload open(PDoc] and open PDoc file
-    #   @param doc [PDoc] an already open PDoc file
-    # @return doc [PDOC] the opened PDoc
-    def open_pdoc(doc)
+    #   @rbs doc: String|Pathname|Pdoc  -- the String path of a pdf file
+    def open_ole_pdoc(doc) # : Pdoc
       case doc
       when PDoc
         doc
       when String, Pathname
-        docpath = Pathname(doc)
-        raise "File not found" unless docpath.file?
-        app.open(docpath)
-
+        self.class.from_path(doc)
       end
     end
 
@@ -58,20 +59,13 @@ module Acrobat
       true
     end
 
-    def insert_pages(src:, insert_after: nil, src_page_start: nil, src_page_end: nil)
-      insert_hash = {"nPage" => insert_after - 1}
-      insert_hash["nStart"] = src_page_start + 1 if src_page_start
-      insert_hash["nEnd"] = src_page_end + 1 if src_page_end
-      ole_obj.InsertPages(**insert_hash)
-    end
-
     def prepend_pages(src_path:, src_page_start: 1, src_page_end: nil)
       insert_pages(insert_after: 0, src_path: src_path, src_page_start: src_page_start, src_page_end: src_page_end)
     end
 
     # returns [Pathname] of d
-    #   @param dir [String, Nil] the String path
-    # @return dir [Pathname] Pathname of dir or of working directory
+    #   @rbs dir: [String, Nil] the String path
+    # @rbs return dir [Pathname] Pathname of dir or of working directory
     def default_dir(dir)
       Pathname(dir || Pathname.getw)
     end
@@ -88,20 +82,21 @@ module Acrobat
       ole_obj.GetFileName
     end
 
-    def close
-      ole_obj.Close
+    def close # : Bool -- true if closes successfully
+      result = ole_obj.Close
+      result == -1
     rescue
-      nil
+      false
     end
 
     def replace_pages(doc, start: 0, replace_start: 0, num_of_pages: 1, merge_annotations: true)
-      src = open_pdoc(doc)
+      src = open_ole_pdoc(doc)
 
       ole_obj.ReplacePages(start, src.ole_obj, replace_start, num_of_pages, merge_annotations)
     end
 
     # return the instance of JSO object
-    # @return [Jso] a WIN32OLE wrapped Jso object 'javascript object'
+    # @rbs return [Jso] a WIN32OLE wrapped Jso object 'javascript object'
     def jso
       @jso ||= Jso.new(self, ole_obj.GetJSObject)
     end
@@ -116,6 +111,32 @@ module Acrobat
     end
 
     protected
+
+    def ole_insert_pages(merge_doc, self_start_page: 0, merge_doc_page_start: 0,
+      number_pages: nil, bookmarks: true)
+      bookmarks_ole = bookmarks ? 1 : 0
+      result = ole_obj.InsertPages(self_start_page, merge_doc.ole_obj, merge_doc_page_start, number_pages, bookmarks_ole)
+      if result == 0
+        raise "ole.InsertPages unable to insert merge doc #{merge_doc.name} into #{name}"
+      end
+      true
+    end
+
+    def ole_replace_pages(merge_doc, self_start_page: nil, merge_doc_page_start: nil,
+      number_pages: nil, bookmarks: true)
+      self_start_page_ole = self_start_page ? self_start_page - 1 : page_count - 1
+      page_start_ole = merge_doc_page_start ? merge_doc_page_start - 1 : merge_doc.GetNumPages - 1
+      number_pages_ole = number_pages || merge_doc
+      bookmarks_ole = bookmarks ? 1 : 0
+      result = ole_obj.ReplacePages(self_start_page_ole, merge_doc.ole, page_start_ole, number_pages_ole, bookmarks_ole)
+    end
+
+    def insert_pages(src:, insert_after: nil, src_page_start: nil, src_page_end: nil)
+      insert_hash = {"nPage" => insert_after - 1}
+      insert_hash["nStart"] = src_page_start + 1 if src_page_start
+      insert_hash["nEnd"] = src_page_end + 1 if src_page_end
+      ole_obj.InsertPages(**insert_hash)
+    end
 
     def merge_pdoc(doc, **options)
       if options
