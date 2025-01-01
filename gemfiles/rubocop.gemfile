@@ -1,5 +1,6 @@
 source "https://rubygems.org" do
-  gem "standard"
+  gem "standard", "~> 1.28"
+  
   gem "rubocop-minitest"
-  gem "rubocop-rbs_inline"
+  
 end

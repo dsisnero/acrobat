@@ -1,0 +1,15 @@
+# Generated from lib/acrobat/avdoc.rb with RBS::Inline
+
+module Acrobat
+  class AvDoc
+    attr_reader ole_obj: WIN32OLE
+
+    attr_reader pdoc_name: String
+
+    def initialize: (untyped ole) -> untyped
+
+    # Close the AvDoc
+    # @rbs save: Boolean -- if true asks to save if false closes without saving
+    def close: (?Boolean save) -> untyped
+  end
+end

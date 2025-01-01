@@ -1,0 +1,63 @@
+# Generated from lib/acrobat/pdoc.rb with RBS::Inline
+
+module Acrobat
+  class PDoc
+    attr_reader ole_obj: untyped
+
+    attr_reader path: Path | Nil
+
+    def self.from_path: (untyped path) -> untyped
+
+    def initialize: (untyped ole, ?untyped path) -> untyped
+
+    def show: (?untyped name) -> untyped
+
+    # @rbs return Fixnum -- the number of pages in the pdf
+    def page_count: () -> Fixnum
+
+    def last_page: () -> untyped
+
+    # merges the doc to the
+    #   @rbs doc: PDoc|String|Pathname --  an open PDoc to merge or filename
+    # @rbs return Boolean -- whether the doc was merged correctly
+    def merge: (PDoc | String | Pathname doc) -> Boolean
+
+    # opens and/or returns PDoc
+    #   @rbs doc: String|Pathname|Pdoc  -- the String path of a pdf file
+    def open_ole_pdoc: (String | Pathname | Pdoc doc) -> untyped
+
+    def fill_and_save: (untyped results, ?name: untyped, ?dir: untyped) -> untyped
+
+    def prepend_pages: (src_path: untyped, ?src_page_start: untyped, ?src_page_end: untyped) -> untyped
+
+    # returns [Pathname] of d
+    #   @rbs dir: [String, Nil] the String path
+    # @rbs return dir [Pathname] Pathname of dir or of working directory
+    def default_dir: ([ String, Nil ] dir) -> dir[Pathname]
+
+    def save_as: (untyped name, ?dir: untyped) -> untyped
+
+    def name: () -> untyped
+
+    def close: () -> untyped
+
+    def replace_pages: (untyped doc, ?start: untyped, ?replace_start: untyped, ?num_of_pages: untyped, ?merge_annotations: untyped) -> untyped
+
+    # return the instance of JSO object
+    # @rbs return [Jso] a WIN32OLE wrapped Jso object 'javascript object'
+    def jso: () -> [ Jso ]
+
+    # return the field_names of the pdf form
+    def field_names: () -> untyped
+
+    def fill_form: (untyped results) -> untyped
+
+    def ole_insert_pages: (untyped merge_doc, ?self_start_page: untyped, ?merge_doc_page_start: untyped, ?number_pages: untyped, ?bookmarks: untyped) -> untyped
+
+    def ole_replace_pages: (untyped merge_doc, ?self_start_page: untyped, ?merge_doc_page_start: untyped, ?number_pages: untyped, ?bookmarks: untyped) -> untyped
+
+    def insert_pages: (src: untyped, ?insert_after: untyped, ?src_page_start: untyped, ?src_page_end: untyped) -> untyped
+
+    def merge_pdoc: (untyped doc, **untyped options) -> untyped
+  end
+end

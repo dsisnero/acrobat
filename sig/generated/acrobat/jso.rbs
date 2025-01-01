@@ -1,0 +1,37 @@
+# Generated from lib/acrobat/jso.rb with RBS::Inline
+
+module Acrobat
+  class Jso
+    attr_reader doc: untyped
+
+    attr_reader ole_obj: untyped
+
+    def initialize: (untyped doc, untyped ole) -> untyped
+
+    def find_field: (untyped name_or_number) -> untyped
+
+    def ole_get_field: (untyped field) -> untyped
+
+    def console: () -> untyped
+
+    def show_console: () -> untyped
+
+    def field_names: () -> untyped
+
+    def export_as_fdf: (untyped name) -> untyped
+
+    def import_fdf: (untyped path) -> untyped
+
+    def fields_hash: () -> untyped
+
+    def set_field: (untyped name, untyped value) -> untyped
+
+    def get_field: (untyped name) -> untyped
+
+    def field_count: () -> untyped
+
+    def clear_form: () -> untyped
+
+    def fill_form: (untyped hash) -> untyped
+  end
+end

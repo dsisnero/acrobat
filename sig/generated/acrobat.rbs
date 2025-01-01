@@ -1,0 +1,6 @@
+# Generated from lib/acrobat.rb with RBS::Inline
+
+module Acrobat
+  class Error < StandardError
+  end
+end

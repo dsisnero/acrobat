@@ -1,0 +1,5 @@
+module Acrobat
+  class Jso
+    @console: untyped
+  end
+end

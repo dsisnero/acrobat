@@ -1,0 +1,3 @@
+module FileSystemObject
+  self.@instance: untyped
+end

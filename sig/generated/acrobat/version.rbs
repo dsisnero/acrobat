@@ -1,0 +1,5 @@
+# Generated from lib/acrobat/version.rb with RBS::Inline
+
+module Acrobat
+  VERSION: ::String
+end
